@@ -1,0 +1,37 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>日本列島クエスト</title>
+<style>body{font-family:-apple-system,"Yu Gothic",sans-serif;background:#fff7f2;color:#243447;margin:0}.w{max-width:760px;margin:auto;padding:16px}.c{background:white;padding:18px;border-radius:20px;margin:14px 0;box-shadow:0 8px 25px #0001}button{padding:14px;border:0;border-radius:14px;font-weight:bold;font-size:16px;margin:5px;background:#eef5fb}.p{background:#ef6b61;color:white}.hide{display:none}.ans{display:grid;grid-template-columns:1fr 1fr}.ok{background:#dff6e9}.ng{background:#ffe6e6}.q{font-size:21px;font-weight:bold;line-height:1.5}.map{height:280px;background:#e6f6ff;border-radius:16px;position:relative;margin:10px}.m{position:absolute;border-radius:50%;background:white;border:3px solid #ef6b61;width:42px;height:42px}.fb{padding:12px;background:#f6f8fa;border-radius:12px;margin-top:10px}</style></head>
+<body><div class="w"><h1>🗾 日本列島クエスト</h1><p>中学受験 社会｜日本の位置・島・海流・緯度経度</p>
+<div id="home" class="c"><h2>コースを選ぼう</h2><button class="p" onclick="start('all')">🎮 ミックス10問</button><button onclick="start('island')">🏝️ 島・領土</button><button onclick="start('sea')">🌊 海・海流</button><button onclick="start('geo')">🧭 緯度・経度</button><button onclick="start('map')">🎯 地図チャレンジ</button><button onclick="start('review')">🔥 苦手だけ復習</button></div>
+<div id="game" class="c hide"><b id="status"></b><div id="q" class="q"></div><div id="special"></div><div id="a" class="ans"></div><div id="fb"></div><button id="next" class="p hide" onclick="nxt()">次へ ▶</button></div>
+<div id="end" class="c hide"><h2 id="result"></h2><div id="wrong"></div><button class="p" onclick="start('review')">🔥 苦手に再挑戦</button><button onclick="location.reload()">🏠 戻る</button></div></div>
+<script>
+const Q=[
+['island','日本の面積はおよそ何万km²？',['約18万','約28万','約38万','約58万'],2,'日本の面積は約37.8万km²です。'],
+['island','日本で最も面積が大きい島は？',['北海道','本州','四国','九州'],1,'日本最大の島は本州です。'],
+['island','北方領土に含まれないものは？',['択捉島','国後島','色丹島','竹島'],3,'北方領土は択捉島・国後島・色丹島・歯舞群島です。'],
+['island','日本の最北端は？',['択捉島','宗谷岬','南鳥島','与那国島'],0,'日本の最北端は択捉島です。'],
+['island','日本の最南端は？',['沖ノ鳥島','南鳥島','与那国島','石垣島'],0,'最南端は沖ノ鳥島です。'],
+['island','日本の最東端は？',['南鳥島','択捉島','沖ノ鳥島','与那国島'],0,'最東端は南鳥島です。'],
+['island','日本の最西端は？',['対馬','与那国島','西表島','沖ノ鳥島'],1,'最西端は与那国島です。'],
+['sea','太平洋側を北上する暖流は？',['親潮','黒潮','リマン海流','千島海流'],1,'黒潮（日本海流）は暖流です。'],
+['sea','日本海を北上する暖流は？',['対馬海流','親潮','リマン海流','黒潮'],0,'対馬海流は日本海を北上します。'],
+['sea','北海道・東北の太平洋側へ南下する寒流は？',['黒潮','対馬海流','親潮','赤道海流'],2,'親潮（千島海流）は寒流です。'],
+['sea','日本海を南下する寒流は？',['リマン海流','黒潮','対馬海流','親潮'],0,'リマン海流は寒流です。'],
+['sea','暖流と寒流が出会う海域は？',['大陸棚','潮目','海溝','干潟'],1,'暖流と寒流が出会うところを潮目といいます。'],
+['sea','九州の西側に広がる海は？',['オホーツク海','東シナ海','日本海','瀬戸内海'],1,'九州の西側には東シナ海が広がります。'],
+['sea','浅くなだらかな海底を何という？',['海溝','潮目','大陸棚','海嶺'],2,'浅くなだらかな海底を大陸棚といいます。'],
+['geo','日本の標準時子午線は東経何度？',['120度','130度','135度','140度'],2,'東経135度です。'],
+['geo','標準時子午線が通る兵庫県の市は？',['神戸市','明石市','姫路市','西宮市'],1,'兵庫県明石市を通ります。'],
+['geo','経度15度の差で生じる時差は？',['30分','1時間','2時間','3時間'],1,'地球は24時間で360度回るので15度で1時間です。'],
+['geo','緯度1度の距離はおよそ何km？',['11km','55km','111km','185km'],2,'緯度1度は約111kmです。'],
+['geo','1海里はおよそ何m？',['111m','1000m','1852m','4000m'],2,'1海里は約1852mです。']
+];
+let ids=[],i=0,s=0,combo=0,bad=[],done=false;
+function W(){try{return JSON.parse(localStorage.japanWeak||'{}')}catch(e){return {}}}
+function mark(x,d){let w=W();w[x]=Math.max(0,(w[x]||0)+d);localStorage.japanWeak=JSON.stringify(w)}
+function start(c){document.querySelector('#home').classList.add('hide');document.querySelector('#end').classList.add('hide');document.querySelector('#game').classList.remove('hide');i=s=combo=0;bad=[];let z=Q.map((_,j)=>j);if(c==='review'){let w=W();z=z.filter(j=>w[j]>0);if(!z.length)z=Q.map((_,j)=>j)}else if(c!=='all'&&c!=='map')z=z.filter(j=>Q[j][0]===c);z.sort(()=>Math.random()-.5);ids=z.slice(0,c==='all'?10:z.length);render()}
+function render(){done=false;let x=ids[i],q=Q[x];status.textContent=`問題 ${i+1}/${ids.length}　スコア ${s}　連続 ${combo}`;document.querySelector('#q').textContent=q[1];a.innerHTML='';special.innerHTML='';fb.innerHTML='';next.classList.add('hide');q[2].forEach((v,k)=>{let b=document.createElement('button');b.textContent=v;b.onclick=()=>answer(k,b);a.appendChild(b)})}
+function answer(k,b){if(done)return;done=true;let x=ids[i],q=Q[x],bs=[...a.children];bs[q[3]].classList.add('ok');if(k===q[3]){combo++;s+=10+(combo>=3?5:0);mark(x,-1);fb.innerHTML='<div class="fb">⭕ 正解！<br>'+q[4]+'</div>'}else{b.classList.add('ng');combo=0;bad.push(x);mark(x,1);fb.innerHTML='<div class="fb">❌ 復習ポイント！<br>'+q[4]+'</div>'}next.classList.remove('hide')}
+function nxt(){i++;if(i<ids.length)render();else finish()}
+function finish(){game.classList.add('hide');end.classList.remove('hide');result.textContent=`🗾 ${s}点！`;let u=[...new Set(bad)];wrong.innerHTML=u.length?'<h3>今回の復習</h3>'+u.map(x=>'<p>・'+Q[x][1]+'<br><small>'+Q[x][4]+'</small></p>').join(''):'<p>🎉 全問正解！</p>'}
+</script></body></html>
