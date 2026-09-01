@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>言いかえる力の基本①②</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Yu Gothic",Meiryo,sans-serif;background:linear-gradient(180deg,#f3f7ff,#fff9f4);color:#243043}
+.wrap{max-width:760px;margin:auto;padding:18px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.back{display:inline-block;text-decoration:none;color:#475467;background:#fff;border:1px solid #e6eaf0;padding:10px 13px;border-radius:12px;font-weight:700}
+.card{background:#fff;border:1px solid #e6eaf0;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(36,48,67,.07);margin:14px 0}
+h1{font-size:28px;margin:4px 0 8px} h2{font-size:21px;margin:0 0 10px}.sub{color:#667085;line-height:1.6}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+button{width:100%;border:0;border-radius:14px;padding:14px 15px;font-size:16px;font-weight:800;cursor:pointer}
+.primary{background:#7c5cff;color:#fff}.secondary{background:#eef0ff;color:#4d3fd0}.warm{background:#fff1eb;color:#b94b25}.ghost{background:#f6f7f9;color:#475467}.danger{background:#fff0f0;color:#b42318}
+.choice{text-align:left;background:#fff;border:2px solid #e6eaf0;color:#243043;margin:9px 0}.choice.correct{border-color:#18a558;background:#effaf3}.choice.wrong{border-color:#d94b4b;background:#fff1f1}
+.badge{display:inline-block;background:#eef0ff;color:#4d3fd0;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}.pill{background:#f7f8fa;border:1px solid #e6eaf0;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:800}
+.question{font-size:21px;line-height:1.65;font-weight:800;margin:8px 0 14px}.promptbox{background:#f8faff;border-left:6px solid #7c5cff;padding:14px;border-radius:12px;margin:10px 0 16px;line-height:1.7}
+.feedback{margin-top:14px;padding:14px;border-radius:14px;line-height:1.65;background:#f7f8fa;display:none}.feedback.good{display:block;background:#effaf3;color:#166534}.feedback.bad{display:block;background:#fff1f1;color:#9b1c1c}
+.next{margin-top:14px;display:none}.small{font-size:13px;color:#667085}.progress{height:9px;background:#edf0f4;border-radius:999px;overflow:hidden;margin:8px 0 14px}.bar{height:100%;width:0;background:linear-gradient(90deg,#7c5cff,#ff8a65)}
+.result{text-align:center}.big{font-size:44px;font-weight:900;margin:8px 0}.hide{display:none!important}.section-title{font-size:14px;color:#667085;font-weight:900;margin:12px 0 8px}
+.note{background:#fff9e8;border:1px solid #f3df9b;border-radius:14px;padding:13px;line-height:1.6}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← クエスト一覧</a><div>📖 国語クエスト</div></div>
+
+<section id="home" class="card">
+<div class="badge">言いかえる力の基本①②</div>
+<h1>🔄 言いかえクエスト</h1>
+<p class="sub">「つまり・たとえば」と「このように・要するに」を使い分けよう。</p>
+<div class="note"><b>攻略のコツ</b><br>「つまり」は具体的なものを大きくまとめる。<br>「たとえば」は大きな言葉を具体的にする。<br>「このように」は前の内容を受け、「要するに」は前の内容をまとめる。</div>
+<div class="section-title">挑戦するコース</div>
+<div class="grid">
+<button class="primary" onclick="startGame('all')">🎮 全問チャレンジ</button>
+<button class="secondary" onclick="startGame('basic')">① つまり・たとえば</button>
+<button class="warm" onclick="startGame('connect')">② このように・要するに</button>
+<button class="ghost" onclick="startGame('weak')">🔥 苦手だけ復習</button>
+</div>
+<div class="section-title">苦手記録</div>
+<p id="weakInfo" class="small"></p>
+<button class="danger" onclick="resetWeak()">🗑️ 苦手をリセット</button>
+</section>
+
+<section id="game" class="card hide">
+<div id="stageBadge" class="badge"></div>
+<div class="stats"><span class="pill">問題 <span id="qnum">1</span>/<span id="qtotal">1</span></span><span class="pill">正解 <span id="score">0</span></span><span class="pill">連続 <span id="streak">0</span>🔥</span></div>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<div id="prompt" class="promptbox"></div>
+<div id="question" class="question"></div>
+<div id="choices"></div>
+<div id="feedback" class="feedback"></div>
+<button id="nextBtn" class="primary next" onclick="nextQuestion()">次の問題へ →</button>
+</section>
+
+<section id="end" class="card hide result">
+<div class="badge">RESULT</div><h2>クエスト結果</h2>
+<div id="resultEmoji" class="big">🎉</div><div id="resultText" class="big"></div><p id="resultSub" class="sub"></p>
+<div class="grid"><button class="primary" onclick="goHome()">もう一度</button><button class="ghost" onclick="startGame('weak')">🔥 苦手だけ復習</button></div>
+</section>
+</div>
+
+<script>
+const QUESTIONS=[
+{id:"b01",g:"basic",t:"つまり",p:"サクラ、ヒマワリ、タンポポ",q:"「つまり」でまとめると？",c:["植物","春","黄色いもの","公園"],a:0,e:"3つに共通する、より大きな仲間は「植物」です。"},
+{id:"b02",g:"basic",t:"つまり",p:"電車、バス、タクシー",q:"「つまり」でまとめると？",c:["乗り物","道路","駅","旅行"],a:0,e:"3つとも人を運ぶ「乗り物」の具体例です。"},
+{id:"b03",g:"basic",t:"つまり",p:"雨、雪、あられ",q:"「つまり」でまとめると？",c:["天気に関係するもの","冬だけのもの","白いもの","雲"],a:0,e:"雨・雪・あられをまとめると、天気に関係する現象として捉えられます。"},
+{id:"b04",g:"basic",t:"たとえば",p:"楽器",q:"「たとえば」に続くものとして最も適切なのは？",c:["ピアノ","教室","音楽会","歌"],a:0,e:"「楽器」という大きな仲間の具体例が「ピアノ」です。"},
+{id:"b05",g:"basic",t:"たとえば",p:"昆虫",q:"「たとえば」に続くものとして最も適切なのは？",c:["カブトムシ","カエル","スズメ","金魚"],a:0,e:"カブトムシは「昆虫」という仲間の具体例です。"},
+{id:"b06",g:"basic",t:"たとえば",p:"文房具",q:"「たとえば」に続くものとして最も適切なのは？",c:["消しゴム","机","教室","宿題"],a:0,e:"消しゴムは文房具の具体例です。"},
+{id:"b07",g:"basic",t:"つまり",p:"ノートに予定を書く。時計で時間を確認する。忘れ物がないか確かめる。",q:"「つまり」でまとめると？",c:["準備をしている","勉強している","遊んでいる","買い物をしている"],a:0,e:"3つの行動に共通しているのは、これからの行動に向けて「準備をしている」ことです。"},
+{id:"b08",g:"basic",t:"たとえば",p:"健康のために体を動かす",q:"具体例として最も適切なのは？",c:["毎朝20分歩く","夜更かしする","テレビを見る","本を机に置く"],a:0,e:"「体を動かす」という内容を具体的な行動にしたものです。"},
+{id:"b09",g:"basic",t:"つまり",p:"犬、猫、ハムスター",q:"「つまり」でまとめると？",c:["ペットとして飼われる動物","野生動物","鳥類","水中の生き物"],a:0,e:"3つはいずれも家庭でペットとして飼われる代表的な動物です。"},
+{id:"b10",g:"basic",t:"たとえば",p:"季節の行事",q:"具体例として最も適切なのは？",c:["節分","鉛筆","信号","冷蔵庫"],a:0,e:"節分は季節と結びついた行事の具体例です。"},
+{id:"c01",g:"connect",t:"このように",p:"朝は自分で起き、使った布団を整え、朝食後の食器も片づけた。",q:"続けるならどれが自然？",c:["このように、身の回りのことを自分でする習慣がついてきた。","要するに、朝の仕事をすべて終えたということだ。","このように、朝食後の片づけを大切にしている。","要するに、自分で起きる習慣だけが身についた。"],a:0,e:"前に並んだ具体的な行動全体を受けて述べているので「このように」が自然です。"},
+{id:"c02",g:"connect",t:"要するに",p:"この店は駅から近く、値段も手ごろで、店員の対応もよい。",q:"最後にまとめるなら？",c:["要するに、利用しやすい店だ。","このように、駅の近くには便利な店が多い。","要するに、値段の安さがこの店の最大の特徴だ。","このように、店員の対応によって店の印象が決まる。"],a:0,e:"前に挙げた複数の特徴を一言でまとめているので「要するに」が適切です。"},
+{id:"c03",g:"connect",t:"このように",p:"春には花が咲き、夏には木々の葉が濃くなり、秋には紅葉する。",q:"後ろに続く文として最も自然なのは？",c:["このように、季節によって自然の姿は変わる。","要するに、春と秋には自然の変化が特に大きい。","このように、花や木の葉は季節ごとに同じ姿を見せる。","要するに、自然の変化は植物だけに起こるものである。"],a:0,e:"前の具体例全体を受けて一般的な内容を述べています。"},
+{id:"c04",g:"connect",t:"要するに",p:"説明書を読み、必要な道具をそろえ、作業の順番を確認した。",q:"最後にまとめるなら？",c:["要するに、作業前の準備をした。","このように、説明書を読むことが作業の中心である。","要するに、必要な道具をそろえることが最も重要だ。","このように、作業の順番を確認することだけを行った。"],a:0,e:"複数の行動を「作業前の準備」と一つにまとめています。"},
+{id:"c05",g:"connect",t:"このように",p:"図書館では大声で話さず、本を元の場所に戻し、走り回らない。",q:"続く文として最も自然なのは？",c:["このように、みんなが気持ちよく使えるようにルールがある。","要するに、本はすべて同じ内容だ。","たとえば、図書館は海の中にある。","つまり、走ることだけが読書だ。"],a:0,e:"前に挙げた具体的なルールを受け、共通する目的を説明しています。"},
+{id:"c06",g:"connect",t:"要するに",p:"気温が低く、冷たい風が強く、池には氷が張っている。",q:"一言でまとめるなら？",c:["要するに、とても寒い。","このように、冷たい風が目立つ一日だった。","要するに、池に氷が張るほど気温が下がっていた。","このように、冬らしい様子のうち風だけが強かった。"],a:0,e:"複数の様子から共通する状態を「とても寒い」とまとめています。"},
+{id:"c07",g:"connect",t:"このように",p:"クラスで係を分担し、困った人がいれば手伝い、使った場所はみんなで片づける。",q:"後ろに続く文として最も自然なのは？",c:["このように、協力することで集団の生活は進めやすくなる。","要するに、一人だけで全部する。","たとえば、協力とは眠ることだ。","しかし、係は食べ物である。"],a:0,e:"前の具体例を受けて、協力することの意味を述べています。"},
+{id:"c08",g:"connect",t:"要するに",p:"漢字を毎日少しずつ練習し、間違えた字だけ翌日にもう一度書き、週末にまとめて確認した。",q:"最後にまとめるなら？",c:["要するに、くり返して復習した。","このように、漢字は数字になった。","たとえば、週末は月曜日だ。","つまり、練習は一度だけでよい。"],a:0,e:"複数の学習行動を「くり返して復習した」とまとめています。"},
+{id:"c09",g:"connect",t:"このように",p:"水筒を持参し、必要のない照明は消し、紙は両面を使った。",q:"続く文として最も自然なのは？",c:["このように、身近なところから資源を大切にできる。","要するに、水筒は電気である。","たとえば、紙は飲み物である。","しかし、照明は植物である。"],a:0,e:"前の具体的な行動を受け、資源を大切にするという共通点を示しています。"},
+{id:"c10",g:"connect",t:"要するに",p:"話す人の方を見て、途中で口をはさまず、最後まで聞いてから質問した。",q:"一言でまとめるなら？",c:["要するに、相手の話を丁寧に聞いた。","このように、質問は話さないことだ。","たとえば、途中は最後である。","つまり、見ることは眠ることだ。"],a:0,e:"複数の行動に共通するのは「相手の話を丁寧に聞く」姿勢です。"}
+];
+
+const KEY="kokugo_iikae_basic_weak";
+let order=[],pos=0,score=0,streak=0,answered=false;
+
+function loadWeak(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){return[]}}
+function saveWeak(a){localStorage.setItem(KEY,JSON.stringify([...new Set(a)]))}
+function addWeak(id){const a=loadWeak();if(!a.includes(id)){a.push(id);saveWeak(a)}updateWeakInfo()}
+function removeWeak(id){saveWeak(loadWeak().filter(x=>x!==id));updateWeakInfo()}
+function resetWeak(){localStorage.removeItem(KEY);updateWeakInfo();alert("苦手記録をリセットしました。")}
+function updateWeakInfo(){const n=loadWeak().length;document.getElementById("weakInfo").textContent=n===0?"現在、苦手問題の記録はありません。":`苦手問題は ${n} 問あります。`}
+function shuffled(a){return [...a].sort(()=>Math.random()-.5)}
+
+function startGame(m){
+ let pool=m==="basic"?QUESTIONS.filter(q=>q.g==="basic"):m==="connect"?QUESTIONS.filter(q=>q.g==="connect"):m==="weak"?QUESTIONS.filter(q=>loadWeak().includes(q.id)):QUESTIONS;
+ if(m==="weak"&&pool.length===0){alert("苦手問題はまだありません。まず通常コースに挑戦しよう！");return}
+ order=shuffled(pool);pos=0;score=0;streak=0;
+ home.classList.add("hide");end.classList.add("hide");game.classList.remove("hide");showQuestion()
+}
+let currentChoices=[];
+
+function showQuestion(){
+ answered=false;const q=order[pos];
+ stageBadge.textContent=q.g==="basic"?`① ${q.t}`:`② ${q.t}`;
+ qnum.textContent=pos+1;qtotal.textContent=order.length;scoreEl.textContent=score;streakEl.textContent=streak;bar.style.width=`${pos/order.length*100}%`;
+ prompt.textContent=q.p;question.textContent=q.q;choices.innerHTML="";
+ currentChoices=q.c.map((x,i)=>({text:x,correct:i===q.a})).sort(()=>Math.random()-.5);
+ currentChoices.forEach((item,i)=>{const b=document.createElement("button");b.className="choice";b.textContent=item.text;b.onclick=()=>answer(i,b);choices.appendChild(b)});
+ feedback.className="feedback";feedback.textContent="";nextBtn.style.display="none"
+}
+function answer(i,btn){
+ if(answered)return;answered=true;const q=order[pos];const bs=[...document.querySelectorAll(".choice")];
+ bs.forEach((b,j)=>{b.disabled=true;if(currentChoices[j].correct)b.classList.add("correct")});
+ if(currentChoices[i].correct){score++;streak++;removeWeak(q.id);feedback.className="feedback good";feedback.innerHTML=`✅ 正解！<br>${q.e}`}
+ else{streak=0;addWeak(q.id);btn.classList.add("wrong");feedback.className="feedback bad";feedback.innerHTML=`❌ おしい！<br>${q.e}`}
+ scoreEl.textContent=score;streakEl.textContent=streak;nextBtn.style.display="block"
+}
+function nextQuestion(){pos++;if(pos>=order.length){finish()}else showQuestion()}
+function finish(){
+ game.classList.add("hide");end.classList.remove("hide");const pct=Math.round(score/order.length*100);
+ resultText.textContent=`${score} / ${order.length}`;resultEmoji.textContent=pct===100?"🏆":pct>=80?"🎉":pct>=60?"👍":"🔥";
+ resultSub.textContent=pct===100?"完全クリア！言いかえ名人！":pct>=80?"かなり身についています。苦手だけ復習して仕上げよう！":pct>=60?"あと一歩。間違えた問題をもう一度！":"ここから伸びます。苦手だけ復習で攻略しよう！";updateWeakInfo()
+}
+function goHome(){end.classList.add("hide");game.classList.add("hide");home.classList.remove("hide");updateWeakInfo()}
+const home=document.getElementById("home"),game=document.getElementById("game"),end=document.getElementById("end"),stageBadge=document.getElementById("stageBadge"),qnum=document.getElementById("qnum"),qtotal=document.getElementById("qtotal"),scoreEl=document.getElementById("score"),streakEl=document.getElementById("streak"),bar=document.getElementById("bar"),prompt=document.getElementById("prompt"),question=document.getElementById("question"),choices=document.getElementById("choices"),feedback=document.getElementById("feedback"),nextBtn=document.getElementById("nextBtn"),resultText=document.getElementById("resultText"),resultEmoji=document.getElementById("resultEmoji"),resultSub=document.getElementById("resultSub");
+updateWeakInfo();
+</script>
+</body>
+</html>
