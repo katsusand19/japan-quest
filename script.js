@@ -21,7 +21,7 @@
   let stepIndex = 0;
   let locked = false;
 
-  const PROGRESS_KEY = "socialQuest_geo_adaptive_v3";
+  const PROGRESS_KEY = "socialQuest_geo_source_v4";
 
   function getProgress(){
     try{
@@ -425,6 +425,124 @@
     showQ();
   }
 
+
+  function sourceBlankStep({title,number,prompt,blanks,success}){
+    setHeader(title);
+    stage.innerHTML = `
+      <div class="stage-label">📝 ポイント・チェック ${number}</div>
+      <p style="margin-top:14px;font-weight:900;line-height:1.8">${prompt}</p>
+      <div id="sourceBlankList" class="match-list"></div>
+      <button id="sourceBlankCheck" class="primary full" style="margin-top:14px">答え合わせ</button>`;
+    const list=$("#sourceBlankList");
+    blanks.forEach((b,i)=>{
+      const card=document.createElement("div");
+      card.className="match-row";
+      card.innerHTML=`<div class="match-main"><b>${b.label}</b><select><option value="">選ぶ</option>${shuffle(b.choices).map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("")}</select></div><div class="match-mark">⚠️ ←ここを見直そう</div>`;
+      list.appendChild(card);
+    });
+    $("#sourceBlankCheck").onclick=()=>{
+      let all=true;
+      $$("#sourceBlankList .match-row").forEach((row,i)=>{
+        row.classList.remove("bad");
+        if(row.querySelector("select").value!==blanks[i].answer){all=false;row.classList.add("bad");}
+      });
+      if(all){
+        locked=true; $$("#sourceBlankList select").forEach(x=>x.disabled=true); $("#sourceBlankCheck").disabled=true;
+        showFeedback(`⭕ <b>正解！</b><br>${success}`,"correct"); enableNext();
+      }else{
+        showFeedback("🔎 赤枠の欄だけ見直そう。教材の文の意味と地名の関係を考えてください。","wrong");
+      }
+    };
+  }
+
+  async function chapter3SourceRiverMap(){
+    setHeader("3-7 ポイント・チェック② 地図から川を特定");
+    stage.innerHTML=`
+      <div class="stage-label">🗾 ポイント・チェック ②</div>
+      <p style="margin-top:12px;line-height:1.7;font-weight:800">説明文を読んで、同じ地図上の記号をタップし、その川の名前も答えよう。</p>
+      <div class="sticky-map-wrap">
+        <div class="sticky-map-head"><b>地図は問題が変わっても固定</b><div class="map-tools"><button id="zout">−</button><button id="zreset">↺</button><button id="zin">＋</button></div></div>
+        <div id="mapViewport" class="map-viewport"><svg id="sourceRiverMap" viewBox="0 0 820 620"></svg></div>
+      </div>
+      <div class="map-question-panel">
+        <div id="mqCount" class="qcount"></div><p id="mqText" class="qtext"></p>
+        <div id="mqHint" class="map-hint">地図上の記号を直接タップしよう。</div>
+        <div id="riverNameChoices" class="option-grid hidden" style="margin-top:10px"></div>
+      </div>`;
+    let zoom=1; const svgEl=$("#sourceRiverMap"); const setZoom=()=>svgEl.style.width=(100*zoom)+"%";
+    $("#zin").onclick=()=>{zoom=Math.min(2.3,zoom+.3);setZoom()}; $("#zout").onclick=()=>{zoom=Math.max(1,zoom-.3);setZoom()}; $("#zreset").onclick=()=>{zoom=1;setZoom();$("#mapViewport").scrollTo({left:0,top:0,behavior:"smooth"})};
+
+    const rivers=[
+      {id:"i",symbol:"イ",name:"石狩川",lon:141.65,lat:43.2},
+      {id:"o",symbol:"オ",name:"最上川",lon:140.05,lat:38.75},
+      {id:"ku",symbol:"ク",name:"信濃川",lon:138.85,lat:37.45},
+      {id:"sa",symbol:"サ",name:"木曽川",lon:136.75,lat:35.15},
+      {id:"a",symbol:"ア",name:"北上川",lon:141.15,lat:39.25},
+      {id:"ka",symbol:"カ",name:"利根川",lon:140.3,lat:36.0},
+      {id:"ko",symbol:"コ",name:"富士川",lon:138.55,lat:35.25},
+      {id:"so",symbol:"ソ",name:"筑後川",lon:130.55,lat:33.2}
+    ];
+    const questions=[
+      {symbol:"オ",answer:"最上川",q:"1　東北地方の南部から北に流れ、県庁所在地のある盆地や庄内平野を通って日本海へそそぐ川は？",hint:"庄内平野・日本海が手がかり。"},
+      {symbol:"イ",answer:"石狩川",q:"2　日本の最低気温−41.0℃を記録した盆地を流れ、石狩平野を通って日本海へそそぐ川は？",hint:"北海道・石狩平野が手がかり。"},
+      {symbol:"サ",answer:"木曽川",q:"3　2つの山脈の間を流れ、下流で長良川・揖斐川と低湿な平野をつくり伊勢湾へそそぐ川は？",hint:"長良川・揖斐川・伊勢湾が手がかり。"},
+      {symbol:"ク",answer:"信濃川",q:"4　日本一の長さをもち、有数の米どころとして知られる平野をつくり日本海へそそぐ川は？",hint:"日本一の長さ・米どころ・日本海が手がかり。"}
+    ];
+    let svg=null,proj=null,qi=0,chosenSymbol=null;
+    try{
+      const d3=await import("https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm");
+      const topo=await import("https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm");
+      const worldModule=await import("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json/+esm");
+      const countries=topo.feature(worldModule.default,worldModule.default.objects.countries).features;
+      const japan=countries.find(d=>String(d.id)==="392");
+      svg=d3.select("#sourceRiverMap"); proj=d3.geoMercator().center([137.4,36.2]).scale(1200).translate([410,300]); const path=d3.geoPath(proj);
+      svg.append("path").datum(japan).attr("d",path).attr("fill","#fff").attr("stroke","#77756d").attr("stroke-width",1.5);
+      rivers.forEach(r=>{const [x,y]=proj([r.lon,r.lat]);
+        svg.append("path").attr("d",`M${x-18},${y-20} Q${x+6},${y-4} ${x-3},${y+20}`).attr("fill","none").attr("stroke","#5a8fa8").attr("stroke-width",4).attr("stroke-linecap","round");
+        const g=svg.append("g").attr("class","map-point").attr("data-symbol",r.symbol).attr("transform",`translate(${x},${y})`).attr("role","button").attr("tabindex",0);
+        g.append("circle").attr("r",16); g.append("text").attr("text-anchor","middle").attr("dy",".35em").text(r.symbol);
+        g.on("click",()=>pickSymbol(r.symbol));
+      });
+      svg.append("text").attr("x",18).attr("y",26).attr("font-size",13).attr("fill","#555").text("青線＝川　丸印＝教材形式の記号");
+    }catch(e){$("#mapViewport").innerHTML='<div class="read-box">地図データを読み込めませんでした。通信を確認して再読み込みしてください。</div>'}
+
+    function clearMarks(){ $$(".map-point").forEach(g=>g.classList.remove("wrong","correct")); $("#riverNameChoices").classList.add("hidden"); $("#riverNameChoices").innerHTML=""; chosenSymbol=null; }
+    function showQ(){clearMarks();const q=questions[qi];$("#mqCount").textContent=`地図問題 ${qi+1} / ${questions.length}`;$("#mqText").textContent=q.q;$("#mqHint").textContent=q.hint+" まず記号をタップ。"}
+    function pickSymbol(symbol){if(locked)return;const q=questions[qi];const g=document.querySelector(`.map-point[data-symbol="${symbol}"]`);
+      if(symbol!==q.symbol){g?.classList.add("wrong");$("#mqHint").innerHTML=`⚠️ 記号<b>${symbol}</b>ではありません。${q.hint}`;setTimeout(()=>g?.classList.remove("wrong"),700);return;}
+      chosenSymbol=symbol; g?.classList.add("correct"); $("#mqHint").innerHTML=`⭕ 記号は <b>${symbol}</b>。次に川の名前を選ぼう。`;
+      const grid=$("#riverNameChoices");grid.classList.remove("hidden");
+      const names=shuffle([q.answer,...rivers.map(r=>r.name).filter(n=>n!==q.answer)].slice(0,4));
+      // ensure plausible 4 items including answer
+      const pool=shuffle([...new Set([q.answer,"最上川","石狩川","木曽川","信濃川","利根川","北上川","富士川"])]).filter(n=>n!==q.answer).slice(0,3);
+      grid.innerHTML=""; shuffle([q.answer,...pool]).forEach(name=>{const b=document.createElement("button");b.className="option";b.textContent=name;b.onclick=()=>pickName(name,b);grid.appendChild(b)});
+    }
+    function pickName(name,b){const q=questions[qi];if(name!==q.answer){b.disabled=true;b.classList.add("wrong");$("#mqHint").innerHTML=`⚠️ 記号は合っています。川名は<b>${name}</b>ではありません。説明文の平野や注ぐ海を確認しよう。`;return;}
+      b.classList.add("correct");$$("#riverNameChoices button").forEach(x=>x.disabled=true);$("#mqHint").innerHTML=`⭕ <b>記号${q.symbol}・${q.answer}</b>。記号と川名の両方が正解です。`;
+      setTimeout(()=>{qi++;if(qi<questions.length)showQ();else{locked=true;showFeedback("⭕ 教材のポイント・チェック②の4問を、地図を固定したまま記号＋川名まで確認しました。","correct");enableNext()}},950);
+    }
+    showQ();
+  }
+
+  function chapter3WrittenStep(){
+    setHeader("3-8 ポイント・チェック③ 記述");
+    const pieces=["長さが短く","流れが急である"];
+    stage.innerHTML=`
+      <div class="stage-label">✍️ ポイント・チェック ③</div>
+      <p style="margin-top:14px;font-weight:900;line-height:1.8">大陸を流れる外国の大きな川とくらべたとき、日本の川の特色を説明しなさい。</p>
+      <div class="diagram-grid" style="margin-top:12px">
+        <div class="diagram"><b>外国の大河川</b><svg viewBox="0 0 300 110"><path d="M10 35 Q95 45 180 68 T290 82" fill="none" stroke="#5a8fa8" stroke-width="6"/><text x="150" y="22" text-anchor="middle" font-size="13">長く、傾きがゆるやか</text></svg></div>
+        <div class="diagram"><b>日本の川</b><svg viewBox="0 0 300 110"><path d="M65 20 L105 72 L190 88" fill="none" stroke="#5a8fa8" stroke-width="6"/><text x="150" y="105" text-anchor="middle" font-size="13">海までの距離が短い</text></svg></div>
+      </div>
+      <p style="font-weight:800;margin-top:14px">次の2つを選んで、答えの文を完成させよう。</p>
+      <div id="writtenChoices" class="option-grid"></div>
+      <div id="writtenAnswer" class="read-box" style="margin-top:12px">日本の川は、<b>＿＿＿＿＿＿＿＿＿＿</b>。</div>
+      <button id="writtenCheck" class="primary full" style="margin-top:14px">これで答える</button>`;
+    const selected=[]; const choices=["長さが短く","流れが急である","長さが長く","流れがゆるやかである"];
+    const grid=$("#writtenChoices");shuffle(choices).forEach(x=>{const b=document.createElement("button");b.className="option";b.textContent=x;b.onclick=()=>{if(selected.includes(x)){selected.splice(selected.indexOf(x),1);b.style.outline=""}else if(selected.length<2){selected.push(x);b.style.outline="3px solid var(--accent)"}$("#writtenAnswer").innerHTML=`日本の川は、<b>${selected.join("、")||"＿＿＿＿＿＿＿＿＿＿"}</b>。`};grid.appendChild(b)});
+    $("#writtenCheck").onclick=()=>{const ok=pieces.every(x=>selected.includes(x))&&selected.length===2;if(ok){locked=true;$$("#writtenChoices button").forEach(b=>b.disabled=true);showFeedback("⭕ <b>長さが短く、流れが急である。</b><br>教材の記述問題③に必要な2点をそろえました。","correct");enableNext()}else showFeedback("🔎 外国の大河川と比べて、日本の川の『長さ』と『流れ』の2点を答えよう。","wrong")};
+  }
+
   function chapter3MountainsMap(){
     return stickyJapanMapQuiz({
       title:"3-3 山脈を地図で確認",
@@ -746,16 +864,59 @@
       })
     ],
     3: [
-      ()=>readStep({title:"3-1 山がちな日本",text:`日本では、<b>山地が国土の約4分の3</b>をしめ、<b>森林は国土の約3分の2</b>をしめます。平地は約4分の1です。`,focus:"『山地の割合』と『森林の割合』を混同しない。"}),
-      ()=>matchStep({title:"3-2 割合を区別する",prompt:"何がどれくらいか、正しく対応させよう。",rows:[{label:"山地",choices:["4分の3","3分の2","4分の1"]},{label:"森林",choices:["4分の3","3分の2","4分の1"]},{label:"平地",choices:["4分の3","3分の2","4分の1"]}],answers:["4分の3","3分の2","4分の1"],success:"山地＝4分の3、森林＝3分の2、平地＝4分の1。似た数字を区別できました。"}),
-      ()=>chapter3MountainsMap(),
-      ()=>readStep({title:"3-4 フォッサマグナと湖",text:`本州中央部を南北に走る大きな地溝帯を<b>フォッサマグナ</b>といいます。湖には、火山活動でできた<b>カルデラ湖</b>、断層の動きでできた<b>断層湖</b>、海岸の一部が砂州などで区切られた<b>潟湖</b>などがあります。教材では、諏訪湖は断層湖、八郎潟は潟湖として扱われます。`,focus:"『湖の名前』だけでなく『どうできた湖か』を結びつける。"}),
-      ()=>matchStep({title:"3-4b 湖の種類を対応",prompt:"湖と種類を対応させよう。",rows:[{label:"十和田湖・洞爺湖",choices:["カルデラ湖","断層湖","潟湖","せき止め湖"]},{label:"琵琶湖・諏訪湖",choices:["カルデラ湖","断層湖","潟湖","せき止め湖"]},{label:"八郎潟・サロマ湖",choices:["カルデラ湖","断層湖","潟湖","せき止め湖"]}],answers:["カルデラ湖","断層湖","潟湖"],success:"湖の名前と成因をセットで整理しました。"}),
-      ()=>chapter3RapidRiversMap(),
-      ()=>chapter3RiverInferenceMap(),
-      ()=>multiSelectStep({title:"3-7 日本の川の特色",question:"大陸の大河川と比べた日本の川の特色を2つ選ぼう。",choices:["長さが短い","流れが急","長さが非常に長い","流れがゆるやか"],answers:["長さが短い","流れが急"],success:"日本の川は『短く・急』が基本。洪水が起こりやすく、舟運には利用しにくい一方、水力発電には利用しやすい特徴があります。"}),
-      ()=>sequenceStep({title:"3-8 なぜ短く急なのか",question:"日本の川の特徴が生まれる流れを、原因→結果の順に並べよう。",items:["国土に山地が多い","山から海までの距離が短い","川の長さが短くなる","高低差が大きく流れが急になる"],correct:["国土に山地が多い","山から海までの距離が短い","川の長さが短くなる","高低差が大きく流れが急になる"],success:"記述するときは『山地が多い → 海まで短い → 川が短く急』という因果関係を意識しよう。"}),
-      ()=>quizStep({title:"3-9 記述の完成",question:"外国の大きな川と比べた日本の川の特色として最も適切なのは？",correct:"長さが短く、流れが急である",distractors:["長さが長く、流れが急である","長さが短く、流れがゆるやかである","長さが長く、流れがゆるやかである"],extra:"教材の記述問題の中心は『長さが短く、流れが急』です。"})
+      ()=>readStep({
+        title:"3-1 要点を読む",
+        text:`日本は山がちで、<b>山地は国土の約4分の3</b>、<b>森林は約3分の2</b>をしめます。本州中央部には3000mをこす山々が連なり、<b>日本の屋根</b>とよばれます。中央部を南北に走る大地溝帯が<b>フォッサマグナ</b>です。日本の川は、大陸の大河川と比べて<b>長さが短く、流れが急</b>です。`,
+        focus:"この章では『割合』『山地・湖・川の名前』『地図から川を探す』『川の特色を説明する』の4種類を学びます。"
+      }),
+      ()=>sourceBlankStep({
+        title:"3-2 ポイント・チェック①(1)",number:"①(1)",
+        prompt:"日本の国土は山がちです。山地と森林の割合を完成させよう。",
+        blanks:[
+          {label:"ア　山地の面積は国土の…",answer:"4分の3",choices:["4分の3","3分の2","4分の1"]},
+          {label:"イ　森林の面積は国土の…",answer:"3分の2",choices:["4分の3","3分の2","4分の1"]}
+        ],
+        success:"ア＝4分の3、イ＝3分の2。『山地』と『森林』の数字を混同しないようにします。"
+      }),
+      ()=>sourceBlankStep({
+        title:"3-3 ポイント・チェック①(2)",number:"①(2)",
+        prompt:"日本の中央部には3000mをこす山々が連なります。何とよばれる？",
+        blanks:[{label:"ウ　『日本の＿＿＿』",answer:"屋根",choices:["屋根","背骨","高原","山門"]}],
+        success:"ウ＝屋根。『日本の屋根』とよばれます。"
+      }),
+      ()=>sourceBlankStep({
+        title:"3-4 ポイント・チェック①(3)",number:"①(3)",
+        prompt:"本州中央部の大地溝帯と、その近くの湖・秋田県の潟湖を完成させよう。",
+        blanks:[
+          {label:"エ　本州中央部を南北にはしる大地溝帯",answer:"フォッサマグナ",choices:["フォッサマグナ","中央構造線","日本アルプス","リアス海岸"]},
+          {label:"オ　その近くにある断層湖",answer:"諏訪湖",choices:["諏訪湖","琵琶湖","十和田湖","サロマ湖"]},
+          {label:"カ　秋田県にある潟湖",answer:"八郎潟",choices:["八郎潟","霞ヶ浦","猪苗代湖","洞爺湖"]}
+        ],
+        success:"エ＝フォッサマグナ、オ＝諏訪湖、カ＝八郎潟。地形と湖をセットで整理します。"
+      }),
+      ()=>sourceBlankStep({
+        title:"3-5 ポイント・チェック①(4)",number:"①(4)",
+        prompt:"日本三急流の3つを、説明から完成させよう。",
+        blanks:[
+          {label:"キ　山形県を流れる",answer:"最上川",choices:["最上川","利根川","信濃川","石狩川"]},
+          {label:"ク　甲府盆地を流れ、駿河湾に注ぐ",answer:"富士川",choices:["富士川","木曽川","北上川","阿武隈川"]},
+          {label:"ケ　熊本県を流れる",answer:"球磨川",choices:["球磨川","筑後川","吉野川","天竜川"]}
+        ],
+        success:"日本三急流＝最上川・富士川・球磨川。場所の説明といっしょに覚えます。"
+      }),
+      ()=>sourceBlankStep({
+        title:"3-6 ポイント・チェック①(5)",number:"①(5)",
+        prompt:"川の源流や県境と関係する山地・山脈を完成させよう。",
+        blanks:[
+          {label:"コ　利根川の源流",answer:"越後山脈",choices:["越後山脈","飛騨山脈","赤石山脈","奥羽山脈"]},
+          {label:"サ　信濃川の源流",answer:"関東山地",choices:["関東山地","中国山地","九州山地","北上高地"]},
+          {label:"シ　長野・岐阜・富山の県境",answer:"飛騨山脈",choices:["飛騨山脈","木曽山脈","赤石山脈","越後山脈"]},
+          {label:"ス　長野・山梨・静岡の県境",answer:"赤石山脈",choices:["赤石山脈","飛騨山脈","木曽山脈","越後山脈"]}
+        ],
+        success:"コ＝越後山脈、サ＝関東山地、シ＝飛騨山脈、ス＝赤石山脈。県境との関係も確認しました。"
+      }),
+      ()=>chapter3SourceRiverMap(),
+      ()=>chapter3WrittenStep()
     ]
   };
 
