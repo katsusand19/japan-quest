@@ -21,13 +21,13 @@
   let stepIndex = 0;
   let locked = false;
 
-  const PROGRESS_KEY = "socialQuest_geo_source_v6";
+  const PROGRESS_KEY = "socialQuest_geo_source_v7";
 
   function getProgress(){
     try{
-      return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {1:0,2:0,3:0,clear1:false,clear2:false,clear3:false};
+      return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {1:0,2:0,3:0,4:0,clear1:false,clear2:false,clear3:false,clear4:false};
     }catch{
-      return {1:0,2:0,3:0,clear1:false,clear2:false,clear3:false};
+      return {1:0,2:0,3:0,4:0,clear1:false,clear2:false,clear3:false,clear4:false};
     }
   }
   function saveProgress(ch, idx){
@@ -45,7 +45,7 @@
   }
   function updateHomeProgress(){
     const p = getProgress();
-    [1,2,3].forEach(ch=>{
+    [1,2,3,4].forEach(ch=>{
       const max = chapters[ch].length;
       const done = Math.min(p[ch] || 0, max);
       const pct = p["clear"+ch] ? 100 : Math.round((done/max)*100);
@@ -737,6 +737,41 @@
     });
   }
 
+
+  function chapter4LandformMatch(){
+    return matchStep({title:"4-2 土地のでき方と利用",prompt:"地形の特徴を対応させよう。",rows:[
+      {label:"川が山地から平地へ出るところ・水はけがよい",choices:["扇状地","三角州","河岸段丘","海岸平野"]},
+      {label:"川が海へ注ぐところ・水もちがよい",choices:["扇状地","三角州","河岸段丘","海岸平野"]},
+      {label:"川すじにできた階段状の土地",choices:["扇状地","三角州","河岸段丘","海岸平野"]},
+      {label:"海岸が隆起してできた平野",choices:["扇状地","三角州","河岸段丘","海岸平野"]}
+    ],answers:["扇状地","三角州","河岸段丘","海岸平野"],success:"扇状地は水はけがよく果樹園など、三角州は水もちがよく水田に利用されます。"});
+  }
+  function chapter4PlateauMatch(){
+    return matchStep({title:"4-3 台地を場所と産業で覚える",prompt:"台地と特色を対応させよう。",rows:[
+      {label:"根室と釧路の中間・大規模な酪農",choices:["根釧台地","牧ノ原","シラス台地"]},
+      {label:"大井川下流・日本最大の茶の産地",choices:["根釧台地","牧ノ原","シラス台地"]},
+      {label:"鹿児島〜宮崎・畑作や畜産",choices:["根釧台地","牧ノ原","シラス台地"]}
+    ],answers:["根釧台地","牧ノ原","シラス台地"],success:"地名だけでなく『どこ・何がさかん』までつなげました。"});
+  }
+  async function chapter4SourceMap(){
+    return stickyJapanMapQuiz({
+      title:"4-9 ポイント・チェック② 地図で平野・盆地を特定",
+      intro:"教材②と同じ4つの説明です。問題が変わっても地図はそのまま。説明を読んで、地図上の記号を直接タップしよう。",
+      points:[
+        {id:"a",label:"ア",name:"石狩平野",lon:141.5,lat:43.1},{id:"e",label:"エ",name:"北上盆地",lon:141.1,lat:39.4},
+        {id:"sa",label:"サ",name:"甲府盆地",lon:138.6,lat:35.65},{id:"se",label:"セ",name:"徳島平野",lon:134.55,lat:34.05},
+        {id:"ta",label:"タ",name:"筑紫平野",lon:130.35,lat:33.25},{id:"so",label:"ソ",name:"広島平野",lon:132.45,lat:34.4},
+        {id:"ka",label:"カ",name:"越後平野",lon:139.0,lat:37.7},{id:"ko",label:"コ",name:"関東平野",lon:139.6,lat:36.0}
+      ],
+      questions:[
+        {q:"1　四国山地をぬうように流れる川がつくり、紀伊半島と向かい合う平野。",answer:"se",explain:"セ＝徳島平野。"},
+        {q:"2　日本で最も干潮と満潮の差がはげしい有明海に面している平野。",answer:"ta",explain:"タ＝筑紫平野。"},
+        {q:"3　山梨県の県庁所在地があり、笛吹川と釜無川が合流するところにある盆地。",answer:"sa",explain:"サ＝甲府盆地。"},
+        {q:"4　西を奥羽山脈、東を北上高地にはさまれ、南北に細長くのびる盆地。",answer:"e",explain:"エ＝北上盆地。"}
+      ],afterAll:"教材②の4問をすべて地図上で確認しました。位置は実際の日本列島上に学習用ポイントとして示しています。"
+    });
+  }
+
   const chapters = {
     1: [
       ()=>readStep({
@@ -1078,6 +1113,32 @@
       }),
       ()=>chapter3SourceRiverMap(),
       ()=>chapter3WrittenStep()
+    ],
+    4: [
+      ()=>readStep({title:"4-1 平野・台地・盆地を整理",text:`川が山地から平地へ出るところには<b>扇状地</b>、海へ注ぐところには<b>三角州</b>ができます。海岸が隆起してできる<b>海岸平野</b>、川すじの階段状の<b>河岸段丘</b>、周囲より一段高い<b>台地</b>、山に囲まれた<b>盆地</b>も区別します。`,focus:"『どこにできるか』『水はけ・水もち』『土地利用』をセットで読む。"}),
+      ()=>chapter4LandformMatch(),
+      ()=>chapter4PlateauMatch(),
+      ()=>quizStep({title:"4-4 盆地とは",question:"盆地の説明として正しいものは？",correct:"まわりを山に囲まれた平地",distractors:["海岸が隆起してできた平地","川が海に注ぐところの三角形状の土地","川すじにできた階段状の土地"],extra:"盆地＝まわりを山に囲まれた平地。"}),
+      ()=>sourceBlankStep({title:"4-5 ポイント・チェック①(1)(2)",number:"①(1)(2)",prompt:"教材①の前半を完成させよう。",blanks:[
+        {label:"ア　山地から平地に出るところの扇形の土地",answer:"扇状地",choices:["扇状地","三角州","台地","盆地"]},
+        {label:"イ　川が海に注ぐところの三角形状の土地",answer:"三角州",choices:["三角州","扇状地","海岸平野","河岸段丘"]},
+        {label:"ウ　まわりより一段高い平地",answer:"台地",choices:["台地","盆地","平野","三角州"]},
+        {label:"エ　根室と釧路の中間・酪農",answer:"根釧台地",choices:["根釧台地","牧ノ原","シラス台地","関東平野"]},
+        {label:"オ　大井川下流・茶",answer:"牧ノ原",choices:["牧ノ原","根釧台地","シラス台地","越後平野"]}
+      ],success:"ア＝扇状地、イ＝三角州、ウ＝台地、エ＝根釧台地、オ＝牧ノ原。"}),
+      ()=>sourceBlankStep({title:"4-6 ポイント・チェック①(3)(4)",number:"①(3)(4)",prompt:"火山灰の台地と日本最大の平野を完成させよう。",blanks:[
+        {label:"カ　鹿児島〜宮崎の白っぽい火山灰台地",answer:"シラス台地",choices:["シラス台地","根釧台地","牧ノ原","関東ローム層"]},
+        {label:"キ　関東ローム層が広がる日本最大の平野",answer:"関東平野",choices:["関東平野","越後平野","石狩平野","濃尾平野"]}
+      ],success:"カ＝シラス台地、キ＝関東平野。"}),
+      ()=>sourceBlankStep({title:"4-7 ポイント・チェック①(5)",number:"①(5)",prompt:"日本海側の穀倉地帯。川と平野をつなげよう。",blanks:[
+        {label:"ク　雄物川が流れる",answer:"秋田平野",choices:["秋田平野","庄内平野","越後平野","仙台平野"]},
+        {label:"ケ　最上川が流れる",answer:"庄内平野",choices:["庄内平野","秋田平野","越後平野","津軽平野"]},
+        {label:"コ　信濃川が流れる",answer:"越後平野",choices:["越後平野","庄内平野","関東平野","濃尾平野"]}
+      ],success:"雄物川→秋田平野、最上川→庄内平野、信濃川→越後平野。"}),
+      ()=>infoStep({title:"4-8 地図問題の見方",html:`<div class="read-box"><b>地図では説明文が手がかり</b><br>川の名前／海や半島／県庁所在地／山脈・高地、の順に根拠を拾います。次は教材②の4問を、同じ地図を残したまま解きます。</div>`,after:"地名を先に当てるのではなく、説明文の根拠から位置を絞ります。"}),
+      ()=>chapter4SourceMap(),
+      ()=>multiSelectStep({title:"4-10 ポイント・チェック③ 輪中",question:"輪中を説明するのに必要な内容を2つ選ぼう。",choices:["水害にそなえる","周囲を堤防で囲んだ集落","山の斜面につくられた集落","海を埋め立てた工業用地"],answers:["水害にそなえる","周囲を堤防で囲んだ集落"],success:"輪中＝水害にそなえて、周囲を堤防で囲んだ集落。"}),
+      ()=>sequenceStep({title:"4-11 土地利用を理由までつなぐ",question:"扇状地の土地利用を、理由がつながる順に並べよう。",items:["川が山地から平地へ出る","砂やれきがたまる","水はけがよい","果樹園などに利用"],correct:["川が山地から平地へ出る","砂やれきがたまる","水はけがよい","果樹園などに利用"],success:"地形→性質→土地利用までつながりました。"})
     ]
   };
 
@@ -1104,6 +1165,15 @@
       <div class="note-section"><b>【一口メモ】</b>湖の表示例「85／−104」では、85＝湖面の標高、−104＝最も深いところの深さ。</div>
       <div class="note-section"><b>【ポイント・チェック②】</b>1 最上川（オ）／2 石狩川（イ）／3 木曽川（サ）／4 信濃川（ク）。</div>
       <div class="note-section"><b>【これだけは覚える！】</b>日本の川は、大陸の大河川と比べて「長さが短く、流れが急」。</div>
+    `,
+    4: `
+      <div class="note-section"><b>【今日のテーマ】</b>平野・台地・盆地</div>
+      <div class="note-section"><b>【地形】</b>扇状地＝山地から平地へ出るところ・水はけがよい／三角州＝河口・水もちがよい／海岸平野＝海岸の隆起／河岸段丘＝川すじの階段状。</div>
+      <div class="note-section"><b>【台地】</b>根釧台地＝酪農／牧ノ原＝茶／シラス台地＝畑作・畜産。</div>
+      <div class="note-section"><b>【平野と川】</b>雄物川→秋田平野／最上川→庄内平野／信濃川→越後平野。日本最大＝関東平野。</div>
+      <div class="note-section"><b>【地図問題】</b>徳島平野／筑紫平野／甲府盆地／北上盆地を説明文から特定する。</div>
+      <div class="note-section"><b>【記述】</b>輪中＝水害にそなえて、周囲を堤防で囲んだ集落。</div>
+      <div class="note-section"><b>【これだけは覚える！】</b>地形は「できる場所→水の性質→土地利用」までつなげる。</div>
     `
   };
 
@@ -1135,6 +1205,14 @@
       {q:"『85／−104』の85は何を表す？",correct:"湖面の標高",d:["最深部の深さ","湖の面積","湖岸の長さ"]},
       {q:"日本三急流の組み合わせは？",correct:"最上川・富士川・球磨川",d:["最上川・利根川・球磨川","信濃川・富士川・球磨川","最上川・富士川・木曽川"]},
       {q:"日本の川の特色は？",correct:"長さが短く、流れが急",d:["長さが長く、流れが急","長さが短く、流れがゆるやか","長さが長く、流れがゆるやか"]}
+    ],
+    4:[
+      {q:"川が山地から平地へ出るところにできるのは？",correct:"扇状地",d:["三角州","河岸段丘","海岸平野"]},
+      {q:"根釧台地でさかんな産業は？",correct:"酪農",d:["茶の栽培","稲作","真珠養殖"]},
+      {q:"日本最大の平野は？",correct:"関東平野",d:["越後平野","石狩平野","濃尾平野"]},
+      {q:"最上川が流れる平野は？",correct:"庄内平野",d:["秋田平野","越後平野","仙台平野"]},
+      {q:"山梨県の県庁所在地がある盆地は？",correct:"甲府盆地",d:["北上盆地","松本盆地","山形盆地"]},
+      {q:"輪中とは？",correct:"水害にそなえ周囲を堤防で囲んだ集落",d:["山の斜面の階段状の畑","海岸を埋め立てた集落","台地上の酪農集落"]}
     ]
   };
 
