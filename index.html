@@ -1,132 +1,102 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>クエスト学習</title>
-
-<style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:linear-gradient(180deg,#eef8ff,#fff6fa);
-  color:#333;
-}
-.wrap{
-  max-width:700px;
-  margin:auto;
-  padding:55px 20px 80px;
-}
-header{
-  text-align:center;
-  margin-bottom:45px;
-}
-h1{
-  font-size:36px;
-  margin:0 0 8px;
-}
-.subtitle{
-  color:#888;
-  font-size:18px;
-}
-.subject{
-  margin-bottom:36px;
-}
-.subject-title{
-  font-size:22px;
-  font-weight:bold;
-  margin:0 5px 12px;
-}
-.card{
-  display:block;
-  background:white;
-  border-radius:22px;
-  padding:22px 24px;
-  margin-bottom:14px;
-  text-decoration:none;
-  color:#333;
-  box-shadow:0 8px 22px rgba(0,0,0,.07);
-}
-.card-title{
-  font-size:21px;
-  font-weight:bold;
-  margin-bottom:6px;
-}
-.card-desc{
-  color:#777;
-  font-size:16px;
-}
-.kokugo{border-left:8px solid #ff8aa8;}
-.sansu{border-left:8px solid #ffb347;}
-.rika{border-left:8px solid #63c784;}
-.shakai{border-left:8px solid #4da3ff;}
-.sonota{border-left:8px solid #a987e8;}
-
-.coming{
-  opacity:.55;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>社会QUEST｜第1章・第2章</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-<div class="wrap">
+  <main id="app" class="app-shell">
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">社会メモリーチェック × 読解トレーニング</p>
+        <h1>社会QUEST</h1>
+      </div>
+      <button id="resetProgressBtn" class="ghost small">進捗リセット</button>
+    </header>
 
-<header>
-  <h1>🎮 クエスト学習</h1>
-  <div class="subtitle">挑戦する教科を選ぼう！</div>
-</header>
+    <section id="homeView">
+      <div class="hero card">
+        <h2>読む → 根拠 → 整理 → 思い出す</h2>
+        <p>「声に出して読めた」ではなく、「何が書いてあるか分かった」を目指します。</p>
+      </div>
 
-<section class="subject">
-  <div class="subject-title">📕 国語</div>
+      <div class="chapter-grid">
+        <button class="chapter-card card" data-chapter="1">
+          <div class="chapter-top">
+            <span class="chapter-no">第1章</span>
+            <span id="progress1" class="progress-pill">0%</span>
+          </div>
+          <h3>日本列島</h3>
+          <p>基本データ／東西南北端／領土／標準時／海流／大陸棚／周辺国／距離・時差</p>
+          <span class="start-label">はじめる →</span>
+        </button>
 
-  <a class="card kokugo" href="kokugo_iikae_basic.html">
-    <div class="card-title">言いかえる力の基本①②</div>
-    <div class="card-desc">同じ意味の表現を見抜こう！</div>
+        <button class="chapter-card card" data-chapter="2">
+          <div class="chapter-top">
+            <span class="chapter-no">第2章</span>
+            <span id="progress2" class="progress-pill">0%</span>
+          </div>
+          <h3>海岸線と湾・半島</h3>
+          <p>リアス海岸／砂浜海岸／砂嘴・砂州／四大島／半島／湾／地名／記述</p>
+          <span class="start-label">はじめる →</span>
+        </button>
+      </div>
 
-  </a>
- <a class="card kokugo" href="kokugo_matryoshka.html">
-  <div class="card-title">🪆 マトリョーシカ方式①②</div>
-  <div class="card-desc">言葉や文章を大きくくくって整理しよう！</div>
-</a> 
+      <div class="rules card subtle">
+        <b>この版で反映したこと</b>
+        <p>選択肢は毎回ランダム。誤答は同じ単元の紛らわしい語を優先。対応問題で間違えると、その欄に赤枠と「←ここを見直そう」が付きます。</p>
+      </div>
+    </section>
 
-</section>
+    <section id="gameView" class="hidden">
+      <div class="game-head">
+        <button id="homeBtn" class="ghost">← 章選択</button>
+        <div class="game-title-wrap">
+          <div id="chapterLabel" class="eyebrow"></div>
+          <h2 id="stepTitle"></h2>
+        </div>
+      </div>
 
-<section class="subject">
-  <div class="subject-title">🔢 算数</div>
+      <div class="progress-row">
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <span id="stepCounter"></span>
+      </div>
 
-  <div class="card sansu coming">
-    <div class="card-title">準備中</div>
-    <div class="card-desc">新しいクエストを追加予定！</div>
-  </div>
-</section>
+      <section class="card lesson-card">
+        <div id="stage"></div>
+        <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+        <button id="nextBtn" class="primary full hidden">次へ</button>
+      </section>
+    </section>
 
-<section class="subject">
-  <div class="subject-title">🔬 理科</div>
+    <section id="noteView" class="hidden">
+      <div class="card">
+        <p class="eyebrow">まとめノート</p>
+        <h2 id="noteTitle"></h2>
+        <p class="muted">紙のノートに書き写してから、見ないで章ボスに挑戦しよう。</p>
+        <div id="noteBody" class="note-sheet"></div>
+        <button id="toBossBtn" class="primary full">✏️ 書き写した！ 章ボスへ</button>
+      </div>
+    </section>
 
-  <div class="card rika coming">
-    <div class="card-title">準備中</div>
-    <div class="card-desc">新しいクエストを追加予定！</div>
-  </div>
-</section>
+    <section id="bossView" class="hidden">
+      <div class="card">
+        <div class="boss-head">
+          <div class="boss-icon">👑</div>
+          <div>
+            <p class="eyebrow">FINAL</p>
+            <h2 id="bossTitle"></h2>
+          </div>
+        </div>
+        <div id="bossStage"></div>
+        <div id="bossFeedback" class="feedback hidden"></div>
+      </div>
+    </section>
+  </main>
 
-<section class="subject">
-  <div class="subject-title">🌏 社会</div>
-
-  <a class="card shakai" href="japan_rettou_quest.html">
-    <div class="card-title">日本列島クエスト</div>
-    <div class="card-desc">日本の国土・海・気候に挑戦！</div>
-  </a>
-</section>
-
-<section class="subject">
-  <div class="subject-title">🌱 その他</div>
-
-  <a class="card sonota" href="flower_quest.html">
-    <div class="card-title">花のつくりクエスト</div>
-    <div class="card-desc">花のつくりをマスターしよう！</div>
-  </a>
-</section>
-
-</div>
+  <script src="script.js"></script>
 </body>
 </html>
