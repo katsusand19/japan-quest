@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f7f6f2">
-  <title>社会QUEST｜地理編</title>
+  <title>社会QUEST｜地理編 改訂版</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main id="app" class="app-shell">
     <header class="site-header">
       <div>
-        <p class="eyebrow">社会メモリーチェック × 地理 × 読解トレーニング</p>
+        <p class="eyebrow">社会メモリーチェック × 読解トレーニング</p>
         <h1>社会QUEST</h1>
       </div>
       <button id="resetProgressBtn" class="ghost small">進捗リセット</button>
@@ -23,24 +23,41 @@
         <p>「声に出して読めた」ではなく、「何が書いてあるか分かった」を目指します。</p>
       </div>
 
-      <div class="chapter-toolbar card subtle">
-        <div><b>地理編 全36章</b><div class="muted">国土 → 地形・気候 → 人口 → 農林水産業 → 工業 → 資源・貿易 → 地方別</div></div>
-        <select id="groupFilter" aria-label="分野を選ぶ">
-          <option value="all">すべて</option>
-          <option value="国土・地形">国土・地形</option>
-          <option value="気候・人口">気候・人口</option>
-          <option value="農業">農業</option>
-          <option value="水産業">水産業</option>
-          <option value="工業">工業</option>
-          <option value="資源・貿易">資源・貿易</option>
-          <option value="地方別">地方別</option>
-        </select>
+      <div class="chapter-grid">
+        <button class="chapter-card card" data-chapter="1">
+          <div class="chapter-top">
+            <span class="chapter-no">第1章</span>
+            <span id="progress1" class="progress-pill">0%</span>
+          </div>
+          <h3>日本列島</h3>
+          <p>基本データ／東西南北端／領土／標準時／海流／大陸棚／周辺国／距離・時差</p>
+          <span class="start-label">はじめる →</span>
+        </button>
+
+        <button class="chapter-card card" data-chapter="2">
+          <div class="chapter-top">
+            <span class="chapter-no">第2章</span>
+            <span id="progress2" class="progress-pill">0%</span>
+          </div>
+          <h3>海岸線と湾・半島</h3>
+          <p>リアス海岸／砂浜海岸／砂嘴・砂州／四大島／半島／湾／地名／記述</p>
+          <span class="start-label">はじめる →</span>
+        </button>
+
+        <button class="chapter-card card" data-chapter="3">
+          <div class="chapter-top">
+            <span class="chapter-no">第3章</span>
+            <span id="progress3" class="progress-pill">0%</span>
+          </div>
+          <h3>山地・山脈と湖・川</h3>
+          <p>割合／日本アルプス／フォッサマグナ／湖／日本三急流／川の地図／記述</p>
+          <span class="start-label">改訂版を試す →</span>
+        </button>
       </div>
-      <div id="chapterGrid" class="chapter-grid"></div>
 
       <div class="rules card subtle">
         <b>この版で反映したこと</b>
-        <p>選択肢は毎回ランダム。誤答は同じ単元の紛らわしい語を優先。対応問題で間違えると、その欄に赤枠と「←ここを見直そう」が付きます。</p>
+        <p>選択肢は毎回ランダム。教材に地図がある問題は地図を使用。地図で場所を選ぶ連続問題は、同じ地図を画面内に固定したまま問題文だけ切り替わります。</p>
       </div>
     </section>
 
