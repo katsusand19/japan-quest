@@ -21,7 +21,7 @@
   let stepIndex = 0;
   let locked = false;
 
-  const PROGRESS_KEY = "socialQuest_geo_source_v4";
+  const PROGRESS_KEY = "socialQuest_geo_source_v6";
 
   function getProgress(){
     try{
@@ -576,6 +576,167 @@
       ],afterAll:"文章中の『平野』『流れる向き』『注ぐ海』を根拠に、4つの川を地図から特定しました。"});
   }
 
+
+  function dataTableMatchStep({title,intro,rows}){
+    setHeader(title);
+    stage.innerHTML = `
+      <div class="stage-label">📊 図表を読み取る</div>
+      <p style="margin-top:12px;line-height:1.8;font-weight:800">${intro}</p>
+      <div class="table-scroll"><table class="study-table">
+        <thead><tr><th>川</th><th>長さ</th><th>流域面積</th></tr></thead>
+        <tbody id="riverDataRows"></tbody>
+      </table></div>
+      <button id="tableCheck" class="primary full" style="margin-top:14px">答え合わせ</button>`;
+    const body=$("#riverDataRows");
+    const lengths=rows.map(r=>r.length);
+    const basins=rows.map(r=>r.basin);
+    rows.forEach((r,i)=>{
+      const tr=document.createElement("tr");
+      tr.dataset.index=i;
+      tr.innerHTML=`<td><b>${r.name}</b><div class="row-mark">⚠️ ←ここを見直そう</div></td>
+        <td><select class="lengthSel"><option value="">選ぶ</option>${shuffle(lengths).map(x=>`<option value="${x}">${x}</option>`).join("")}</select></td>
+        <td><select class="basinSel"><option value="">選ぶ</option>${shuffle(basins).map(x=>`<option value="${x}">${x}</option>`).join("")}</select></td>`;
+      body.appendChild(tr);
+    });
+    $("#tableCheck").onclick=()=>{
+      let all=true;
+      $$("#riverDataRows tr").forEach((tr,i)=>{
+        tr.classList.remove("bad-row");
+        const ok=tr.querySelector(".lengthSel").value===rows[i].length && tr.querySelector(".basinSel").value===rows[i].basin;
+        if(!ok){all=false;tr.classList.add("bad-row");}
+      });
+      if(all){
+        locked=true; $$("#riverDataRows select").forEach(x=>x.disabled=true); $("#tableCheck").disabled=true;
+        showFeedback("⭕ 6本すべての長さと流域面積を図表から対応できました。<br>この図では、<b>最長＝信濃川367km</b>、<b>流域面積最大＝利根川1.7万km²</b>です。","correct"); enableNext();
+      }else showFeedback("🔎 赤く示された行だけ見直そう。長さと流域面積の列を取り違えていないか確認してください。","wrong");
+    };
+  }
+
+  function chapter3MountainPatternStep(){
+    return sourceBlankStep({
+      title:"3-2 山地の割合と並び方",number:"要点①",
+      prompt:"要点のまとめにある『割合』と『山地の並び方』を全部完成させよう。",
+      blanks:[
+        {label:"山地の面積",answer:"国土の4分の3",choices:["国土の4分の3","国土の3分の2","国土の4分の1"]},
+        {label:"平地の面積",answer:"国土の4分の1",choices:["国土の4分の1","国土の3分の1","国土の2分の1"]},
+        {label:"森林面積",answer:"国土の3分の2",choices:["国土の3分の2","国土の4分の3","国土の4分の1"]},
+        {label:"東北日本の山地",answer:"ほぼ3列に南北",choices:["ほぼ3列に南北","ほぼ2列に東西","ほぼ3列に東西"]},
+        {label:"東北日本の山系",answer:"北弯山系",choices:["北弯山系","南弯山系","日本アルプス"]},
+        {label:"西南日本の山地",answer:"ほぼ2列に東西",choices:["ほぼ2列に東西","ほぼ3列に南北","ほぼ2列に南北"]},
+        {label:"西南日本の山系",answer:"南弯山系",choices:["南弯山系","北弯山系","フォッサマグナ"]}
+      ],
+      success:"山地4分の3・平地4分の1・森林3分の2。東北日本はほぼ3列に南北、西南日本はほぼ2列に東西です。"
+    });
+  }
+
+  function chapter3AlpsStep(){
+    return sourceBlankStep({
+      title:"3-3 日本アルプスと日本の屋根",number:"要点②",
+      prompt:"日本アルプス3山脈と呼び名、日本の屋根を整理しよう。",
+      blanks:[
+        {label:"飛騨山脈",answer:"北アルプス",choices:["北アルプス","中央アルプス","南アルプス"]},
+        {label:"木曽山脈",answer:"中央アルプス",choices:["中央アルプス","北アルプス","南アルプス"]},
+        {label:"赤石山脈",answer:"南アルプス",choices:["南アルプス","中央アルプス","北アルプス"]},
+        {label:"『日本の屋根』",answer:"3000m級の山々",choices:["3000m級の山々","2000m級の山々","1000m級の山々"]}
+      ],
+      success:"飛騨＝北、木曽＝中央、赤石＝南。3000m級の山々が連なる地域を『日本の屋根』とよびます。"
+    });
+  }
+
+  function chapter3MountainMapNorth(){
+    return stickyJapanMapQuiz({
+      title:"3-4 地図：北海道・東北の山地",intro:"要点の地図にある北海道・東北の山地を、同じ日本地図のまま順番に答えます。位置は学習用の概略点です。",
+      points:[
+        {id:"kitami",label:"A",name:"北見山地",lon:143.6,lat:43.8},{id:"teshio",label:"B",name:"天塩山地",lon:142.0,lat:44.3},{id:"yubari",label:"C",name:"夕張山地",lon:142.2,lat:43.1},{id:"hidaka",label:"D",name:"日高山脈",lon:142.8,lat:42.4},
+        {id:"dewa",label:"E",name:"出羽山地",lon:140.0,lat:39.4},{id:"ou",label:"F",name:"奥羽山脈",lon:140.7,lat:39.1},{id:"kitakami",label:"G",name:"北上高地",lon:141.4,lat:39.5},{id:"abukuma",label:"H",name:"阿武隈高地",lon:140.7,lat:37.4}
+      ],
+      questions:[
+        {q:"北海道北東部の北見山地はどこ？",answer:"kitami"},{q:"北海道北部の天塩山地はどこ？",answer:"teshio"},{q:"北海道中央部の夕張山地はどこ？",answer:"yubari"},{q:"北海道南東部の日高山脈はどこ？",answer:"hidaka"},
+        {q:"東北地方の日本海側にある出羽山地はどこ？",answer:"dewa"},{q:"東北地方中央部を南北にのびる奥羽山脈はどこ？",answer:"ou"},{q:"東北地方東側の北上高地はどこ？",answer:"kitakami"},{q:"東北地方南東部の阿武隈高地はどこ？",answer:"abukuma"}
+      ],afterAll:"北海道・東北の8つを地図で確認しました。"
+    });
+  }
+
+  function chapter3MountainMapCentral(){
+    return stickyJapanMapQuiz({
+      title:"3-5 地図：中部・関東の山地",intro:"フォッサマグナ周辺と日本アルプスを、位置と名前で結びつけます。位置は学習用の概略点です。",
+      points:[
+        {id:"echigo",label:"A",name:"越後山脈",lon:139.1,lat:37.0},{id:"hida",label:"B",name:"飛騨山脈",lon:137.6,lat:36.3},{id:"kiso",label:"C",name:"木曽山脈",lon:137.7,lat:35.8},{id:"akaishi",label:"D",name:"赤石山脈",lon:138.15,lat:35.5},{id:"kanto",label:"E",name:"関東山地",lon:138.75,lat:35.8},{id:"fossa",label:"F",name:"フォッサマグナ",lon:138.4,lat:36.2}
+      ],
+      questions:[
+        {q:"越後山脈はどこ？",answer:"echigo"},{q:"飛騨山脈（北アルプス）はどこ？",answer:"hida"},{q:"木曽山脈（中央アルプス）はどこ？",answer:"kiso"},{q:"赤石山脈（南アルプス）はどこ？",answer:"akaishi"},{q:"関東山地はどこ？",answer:"kanto"},{q:"本州中央部を南北にはしる大地溝帯・フォッサマグナはどこ？",answer:"fossa"}
+      ],afterAll:"中部・関東の山地とフォッサマグナを地図で確認しました。"
+    });
+  }
+
+  function chapter3MountainMapWest(){
+    return stickyJapanMapQuiz({
+      title:"3-6 地図：西日本の山地",intro:"要点の地図にある近畿・中国・四国・九州の山地を答えます。位置は学習用の概略点です。",
+      points:[
+        {id:"suzuka",label:"A",name:"鈴鹿山脈",lon:136.4,lat:35.1},{id:"tamba",label:"B",name:"丹波高地",lon:135.3,lat:35.2},{id:"kii",label:"C",name:"紀伊山地",lon:135.8,lat:34.1},{id:"chugoku",label:"D",name:"中国山地",lon:133.2,lat:35.0},{id:"shikoku",label:"E",name:"四国山地",lon:133.5,lat:33.7},{id:"sanuki",label:"F",name:"讃岐山脈",lon:134.0,lat:34.1},{id:"tsukushi",label:"G",name:"筑紫山地",lon:130.7,lat:33.5},{id:"kyushu",label:"H",name:"九州山地",lon:131.2,lat:32.4}
+      ],
+      questions:[
+        {q:"鈴鹿山脈はどこ？",answer:"suzuka"},{q:"丹波高地はどこ？",answer:"tamba"},{q:"紀伊山地はどこ？",answer:"kii"},{q:"中国山地はどこ？",answer:"chugoku"},{q:"四国山地はどこ？",answer:"shikoku"},{q:"讃岐山脈はどこ？",answer:"sanuki"},{q:"筑紫山地はどこ？",answer:"tsukushi"},{q:"九州山地はどこ？",answer:"kyushu"}
+      ],afterAll:"西日本の8つの山地・山脈を地図で確認しました。"
+    });
+  }
+
+  function chapter3LakeStep(){
+    return sourceBlankStep({
+      title:"3-7 湖のでき方と例",number:"要点③",
+      prompt:"要点のまとめにある湖を、種類と結びつけよう。",
+      blanks:[
+        {label:"十和田湖",answer:"カルデラ湖",choices:["カルデラ湖","せき止め湖","断層湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"摩周湖",answer:"カルデラ湖",choices:["カルデラ湖","せき止め湖","断層湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"洞爺湖",answer:"カルデラ湖",choices:["カルデラ湖","せき止め湖","断層湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"田沢湖",answer:"カルデラ湖",choices:["カルデラ湖","せき止め湖","断層湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"富士五湖",answer:"せき止め湖",choices:["せき止め湖","カルデラ湖","断層湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"琵琶湖",answer:"断層湖",choices:["断層湖","カルデラ湖","せき止め湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"諏訪湖",answer:"断層湖",choices:["断層湖","カルデラ湖","せき止め湖","潟湖","河せき湖（三日月湖）"]},
+        {label:"八郎潟",answer:"潟湖",choices:["潟湖","カルデラ湖","せき止め湖","断層湖","河せき湖（三日月湖）"]},
+        {label:"サロマ湖",answer:"潟湖",choices:["潟湖","カルデラ湖","せき止め湖","断層湖","河せき湖（三日月湖）"]},
+        {label:"石狩川流域",answer:"河せき湖（三日月湖）",choices:["河せき湖（三日月湖）","カルデラ湖","せき止め湖","断層湖","潟湖"]}
+      ],
+      success:"湖の5分類と、要点に載っている具体例をすべて対応できました。田沢湖は日本最深です。"
+    });
+  }
+
+  function chapter3LakeFactsStep(){
+    return sourceBlankStep({
+      title:"3-8 湖の重要ポイント",number:"要点④",
+      prompt:"湖について、まとめ欄と一口メモの情報まで確認しよう。",
+      blanks:[
+        {label:"日本最深の湖",answer:"田沢湖",choices:["田沢湖","琵琶湖","十和田湖","摩周湖"]},
+        {label:"地図の『85』",answer:"湖面の標高",choices:["湖面の標高","最深部の深さ","湖の面積","湖岸の長さ"]},
+        {label:"地図の『−104』",answer:"最も深いところの深さ",choices:["最も深いところの深さ","湖面の標高","湖の面積","湖岸の長さ"]}
+      ],
+      success:"田沢湖＝日本最深。琵琶湖の例では、85は湖面の標高、−104は最深部の深さを表します。"
+    });
+  }
+
+  function chapter3RiverFeatureStep(){
+    return multiSelectStep({
+      title:"3-9 日本の川の特色",question:"要点のまとめに書かれている日本の川の特色を、全部選ぼう。",
+      choices:["流れが急で長さが短い","ダムをつくって水力発電に利用しやすい","洪水がおこりやすい","舟運に利用しにくい","流れがゆるやかで長さが長い","舟運に利用しやすい"],
+      answers:["流れが急で長さが短い","ダムをつくって水力発電に利用しやすい","洪水がおこりやすい","舟運に利用しにくい"],
+      success:"要点の4点をすべて選べました。"
+    });
+  }
+
+  function chapter3RiverTableStep(){
+    return dataTableMatchStep({
+      title:"3-10 図表：川の長さと流域面積",intro:"教材の図表をもとに、6本の川の長さと流域面積を対応させよう。",
+      rows:[
+        {name:"信濃川（中部）",length:"367km",basin:"1.2万km²"},
+        {name:"利根川（関東）",length:"322km",basin:"1.7万km²"},
+        {name:"石狩川（北海道）",length:"268km",basin:"1.4万km²"},
+        {name:"天塩川（北海道）",length:"256km",basin:"0.6万km²"},
+        {name:"北上川（東北）",length:"249km",basin:"1.0万km²"},
+        {name:"阿武隈川（東北）",length:"239km",basin:"0.5万km²"}
+      ]
+    });
+  }
+
   const chapters = {
     1: [
       ()=>readStep({
@@ -865,55 +1026,55 @@
     ],
     3: [
       ()=>readStep({
-        title:"3-1 要点を読む",
-        text:`日本は山がちで、<b>山地は国土の約4分の3</b>、<b>森林は約3分の2</b>をしめます。本州中央部には3000mをこす山々が連なり、<b>日本の屋根</b>とよばれます。中央部を南北に走る大地溝帯が<b>フォッサマグナ</b>です。日本の川は、大陸の大河川と比べて<b>長さが短く、流れが急</b>です。`,
-        focus:"この章では『割合』『山地・湖・川の名前』『地図から川を探す』『川の特色を説明する』の4種類を学びます。"
+        title:"3-1 この章で何をつかむ？",
+        text:`日本は山がちで、山地・山脈の並び方には地域差があります。日本アルプスやフォッサマグナ、湖のでき方、日本の川の特色、川の長さと流域面積を、<b>文章・地図・図表</b>を使って整理します。最後は教材のポイント・チェック①〜③をその形式に合わせて解きます。`,
+        focus:"『名前を読むだけ』ではなく、割合・位置・分類・図表・理由のどれを問われているかを意識する。"
       }),
+      ()=>chapter3MountainPatternStep(),
+      ()=>chapter3AlpsStep(),
+      ()=>chapter3MountainMapNorth(),
+      ()=>chapter3MountainMapCentral(),
+      ()=>chapter3MountainMapWest(),
+      ()=>chapter3LakeStep(),
+      ()=>chapter3LakeFactsStep(),
+      ()=>chapter3RiverFeatureStep(),
+      ()=>chapter3RiverTableStep(),
       ()=>sourceBlankStep({
-        title:"3-2 ポイント・チェック①(1)",number:"①(1)",
+        title:"3-11 ポイント・チェック①(1)",number:"①(1)",
         prompt:"日本の国土は山がちです。山地と森林の割合を完成させよう。",
         blanks:[
           {label:"ア　山地の面積は国土の…",answer:"4分の3",choices:["4分の3","3分の2","4分の1"]},
           {label:"イ　森林の面積は国土の…",answer:"3分の2",choices:["4分の3","3分の2","4分の1"]}
-        ],
-        success:"ア＝4分の3、イ＝3分の2。『山地』と『森林』の数字を混同しないようにします。"
+        ],success:"ア＝4分の3、イ＝3分の2。"
       }),
       ()=>sourceBlankStep({
-        title:"3-3 ポイント・チェック①(2)",number:"①(2)",
-        prompt:"日本の中央部には3000mをこす山々が連なります。何とよばれる？",
-        blanks:[{label:"ウ　『日本の＿＿＿』",answer:"屋根",choices:["屋根","背骨","高原","山門"]}],
-        success:"ウ＝屋根。『日本の屋根』とよばれます。"
+        title:"3-12 ポイント・チェック①(2)",number:"①(2)",prompt:"日本の中央部には3000mをこす山々が連なります。何とよばれる？",
+        blanks:[{label:"ウ　『日本の＿＿＿』",answer:"屋根",choices:["屋根","背骨","高原","山門"]}],success:"ウ＝屋根。"
       }),
       ()=>sourceBlankStep({
-        title:"3-4 ポイント・チェック①(3)",number:"①(3)",
-        prompt:"本州中央部の大地溝帯と、その近くの湖・秋田県の潟湖を完成させよう。",
+        title:"3-13 ポイント・チェック①(3)",number:"①(3)",prompt:"本州中央部の大地溝帯と、その近くの湖・秋田県の潟湖を完成させよう。",
         blanks:[
           {label:"エ　本州中央部を南北にはしる大地溝帯",answer:"フォッサマグナ",choices:["フォッサマグナ","中央構造線","日本アルプス","リアス海岸"]},
           {label:"オ　その近くにある断層湖",answer:"諏訪湖",choices:["諏訪湖","琵琶湖","十和田湖","サロマ湖"]},
-          {label:"カ　秋田県にある潟湖",answer:"八郎潟",choices:["八郎潟","霞ヶ浦","猪苗代湖","洞爺湖"]}
-        ],
-        success:"エ＝フォッサマグナ、オ＝諏訪湖、カ＝八郎潟。地形と湖をセットで整理します。"
+          {label:"カ　秋田県にある潟湖",answer:"八郎潟",choices:["八郎潟","サロマ湖","田沢湖","洞爺湖"]}
+        ],success:"エ＝フォッサマグナ、オ＝諏訪湖、カ＝八郎潟。"
       }),
       ()=>sourceBlankStep({
-        title:"3-5 ポイント・チェック①(4)",number:"①(4)",
-        prompt:"日本三急流の3つを、説明から完成させよう。",
+        title:"3-14 ポイント・チェック①(4)",number:"①(4)",prompt:"日本三急流の3つを、説明から完成させよう。",
         blanks:[
-          {label:"キ　山形県を流れる",answer:"最上川",choices:["最上川","利根川","信濃川","石狩川"]},
-          {label:"ク　甲府盆地を流れ、駿河湾に注ぐ",answer:"富士川",choices:["富士川","木曽川","北上川","阿武隈川"]},
+          {label:"キ　庄内平野を流れる",answer:"最上川",choices:["最上川","利根川","信濃川","石狩川"]},
+          {label:"ク　甲府盆地を流れて駿河湾に注ぐ",answer:"富士川",choices:["富士川","木曽川","北上川","阿武隈川"]},
           {label:"ケ　熊本県を流れる",answer:"球磨川",choices:["球磨川","筑後川","吉野川","天竜川"]}
-        ],
-        success:"日本三急流＝最上川・富士川・球磨川。場所の説明といっしょに覚えます。"
+        ],success:"日本三急流＝最上川・富士川・球磨川。"
       }),
       ()=>sourceBlankStep({
-        title:"3-6 ポイント・チェック①(5)",number:"①(5)",
-        prompt:"川の源流や県境と関係する山地・山脈を完成させよう。",
+        title:"3-15 ポイント・チェック①(5)",number:"①(5)",prompt:"川の源流や県境と関係する山地・山脈を完成させよう。",
         blanks:[
           {label:"コ　利根川の源流",answer:"越後山脈",choices:["越後山脈","飛騨山脈","赤石山脈","奥羽山脈"]},
           {label:"サ　信濃川の源流",answer:"関東山地",choices:["関東山地","中国山地","九州山地","北上高地"]},
-          {label:"シ　長野・岐阜・富山の県境",answer:"飛騨山脈",choices:["飛騨山脈","木曽山脈","赤石山脈","越後山脈"]},
-          {label:"ス　長野・山梨・静岡の県境",answer:"赤石山脈",choices:["赤石山脈","飛騨山脈","木曽山脈","越後山脈"]}
-        ],
-        success:"コ＝越後山脈、サ＝関東山地、シ＝飛騨山脈、ス＝赤石山脈。県境との関係も確認しました。"
+          {label:"シ　長野・岐阜・富山の境",answer:"飛騨山脈",choices:["飛騨山脈","木曽山脈","赤石山脈","越後山脈"]},
+          {label:"ス　長野・山梨・静岡の境",answer:"赤石山脈",choices:["赤石山脈","飛騨山脈","木曽山脈","越後山脈"]}
+        ],success:"コ＝越後山脈、サ＝関東山地、シ＝飛騨山脈、ス＝赤石山脈。"
       }),
       ()=>chapter3SourceRiverMap(),
       ()=>chapter3WrittenStep()
@@ -935,8 +1096,13 @@
     `,
     3: `
       <div class="note-section"><b>【今日のテーマ】</b>山地・山脈と湖・川</div>
-      <div class="note-section"><b>【大事な言葉】</b>山地4分の3／森林3分の2／日本の屋根／フォッサマグナ／飛騨山脈／木曽山脈／赤石山脈／カルデラ湖／断層湖／潟湖／最上川／富士川／球磨川／信濃川</div>
-      <div class="note-section"><b>【関係図】</b>山地が多い → 山から海までの距離が短い → 川が短い → 高低差が大きく流れが急</div>
+      <div class="note-section"><b>【割合と並び方】</b>山地＝国土の4分の3／平地＝4分の1／森林＝3分の2。東北日本＝ほぼ3列に南北（北弯山系）、西南日本＝ほぼ2列に東西（南弯山系）。</div>
+      <div class="note-section"><b>【日本アルプス】</b>飛騨山脈＝北アルプス／木曽山脈＝中央アルプス／赤石山脈＝南アルプス。3000m級の山々＝日本の屋根。</div>
+      <div class="note-section"><b>【湖】</b>カルデラ湖＝十和田湖・摩周湖・洞爺湖・田沢湖（日本最深）／せき止め湖＝富士五湖／断層湖＝琵琶湖・諏訪湖／潟湖＝八郎潟・サロマ湖／河せき湖（三日月湖）＝石狩川流域。</div>
+      <div class="note-section"><b>【川】</b>流れが急で長さが短い。ダムをつくって水力発電に利用しやすい。洪水がおこりやすく、舟運に利用しにくい。日本三急流＝最上川・富士川・球磨川。</div>
+      <div class="note-section"><b>【図表】</b>信濃川367km・1.2万km²／利根川322km・1.7万km²／石狩川268km・1.4万km²／天塩川256km・0.6万km²／北上川249km・1.0万km²／阿武隈川239km・0.5万km²。</div>
+      <div class="note-section"><b>【一口メモ】</b>湖の表示例「85／−104」では、85＝湖面の標高、−104＝最も深いところの深さ。</div>
+      <div class="note-section"><b>【ポイント・チェック②】</b>1 最上川（オ）／2 石狩川（イ）／3 木曽川（サ）／4 信濃川（ク）。</div>
       <div class="note-section"><b>【これだけは覚える！】</b>日本の川は、大陸の大河川と比べて「長さが短く、流れが急」。</div>
     `
   };
@@ -960,11 +1126,14 @@
     ],
     3:[
       {q:"山地は国土のおよそどれくらい？",correct:"4分の3",d:["3分の2","4分の1","2分の1"]},
-      {q:"森林は国土のおよそどれくらい？",correct:"3分の2",d:["4分の3","4分の1","3分の1"]},
-      {q:"北アルプスともよばれるのは？",correct:"飛騨山脈",d:["木曽山脈","赤石山脈","越後山脈"]},
-      {q:"断層湖の例は？",correct:"諏訪湖",d:["八郎潟","十和田湖","サロマ湖"]},
-      {q:"日本三急流に含まれる川は？",correct:"球磨川",d:["利根川","石狩川","信濃川"]},
-      {q:"日本一長い川は？",correct:"信濃川",d:["木曽川","最上川","石狩川"]},
+      {q:"東北日本の山地の並び方は？",correct:"ほぼ3列に南北",d:["ほぼ2列に東西","ほぼ3列に東西","ほぼ2列に南北"]},
+      {q:"中央アルプスともよばれるのは？",correct:"木曽山脈",d:["飛騨山脈","赤石山脈","越後山脈"]},
+      {q:"せき止め湖の例は？",correct:"富士五湖",d:["諏訪湖","八郎潟","摩周湖"]},
+      {q:"日本最深の湖は？",correct:"田沢湖",d:["琵琶湖","十和田湖","洞爺湖"]},
+      {q:"教材の図表で流域面積が最も広い川は？",correct:"利根川",d:["信濃川","石狩川","北上川"]},
+      {q:"教材の図表で信濃川の長さは？",correct:"367km",d:["322km","268km","239km"]},
+      {q:"『85／−104』の85は何を表す？",correct:"湖面の標高",d:["最深部の深さ","湖の面積","湖岸の長さ"]},
+      {q:"日本三急流の組み合わせは？",correct:"最上川・富士川・球磨川",d:["最上川・利根川・球磨川","信濃川・富士川・球磨川","最上川・富士川・木曽川"]},
       {q:"日本の川の特色は？",correct:"長さが短く、流れが急",d:["長さが長く、流れが急","長さが短く、流れがゆるやか","長さが長く、流れがゆるやか"]}
     ]
   };
