@@ -98,3 +98,12 @@ select{width:100%;min-height:46px;border:1px solid var(--border);border-radius:1
   .match-main{grid-template-columns:1fr}
   .site-header{align-items:flex-start}
 }
+
+.chapter-toolbar{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:14px}
+.chapter-toolbar select{width:auto;min-width:150px}
+.chapter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chapter-card{min-height:175px}
+.chapter-card p{font-size:.9rem}
+.group-tag{display:inline-block;font-size:.72rem;font-weight:800;padding:4px 8px;border-radius:999px;background:var(--panel);color:var(--muted);margin-bottom:8px}
+@media(max-width:780px){.chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.chapter-grid{grid-template-columns:1fr}.chapter-toolbar{align-items:stretch;flex-direction:column}.chapter-toolbar select{width:100%}}
