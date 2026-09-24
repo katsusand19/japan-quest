@@ -1,0 +1,135 @@
+
+:root{
+  --bg:#f7f6f2;
+  --card:#ffffff;
+  --text:#242424;
+  --muted:#6b6b68;
+  --border:#deddd7;
+  --panel:#f1f0eb;
+  --accent:#2f6f55;
+  --accent-soft:#e7f1ec;
+  --warn:#b33a3a;
+  --warn-soft:#fff0f0;
+  --shadow:0 8px 30px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+html{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--text)}
+body{margin:0;background:var(--bg)}
+button,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default}
+.app-shell{width:min(920px,100%);margin:0 auto;padding:20px 16px 48px}
+.site-header,.game-head,.chapter-top,.progress-row,.boss-head{display:flex;align-items:center}
+.site-header{justify-content:space-between;gap:16px;margin-bottom:18px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(1.6rem,5vw,2.2rem);margin-bottom:0}
+h2{font-size:clamp(1.3rem,4.5vw,1.8rem)}
+h3{font-size:1.25rem;margin-bottom:8px}
+.eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.subtle{box-shadow:none}
+.hero{margin-bottom:16px}
+.hero p,.chapter-card p,.muted{color:var(--muted);line-height:1.7}
+.chapter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.chapter-card{text-align:left;min-height:190px;transition:.15s transform,.15s border-color}
+.chapter-card:hover{transform:translateY(-2px);border-color:#b7b6ae}
+.chapter-top{justify-content:space-between;gap:12px}
+.chapter-no{font-weight:800;color:var(--muted)}
+.progress-pill{font-size:.8rem;padding:5px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:800}
+.start-label{display:block;margin-top:14px;font-weight:800;color:var(--accent)}
+.rules{margin-top:16px;line-height:1.7}
+.rules p{margin:7px 0 0;color:var(--muted)}
+.hidden{display:none!important}
+.ghost,.primary{border-radius:12px;min-height:44px;padding:10px 14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:800}
+.ghost.small{font-size:.82rem;min-height:38px}
+.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.full{width:100%}
+.game-head{justify-content:flex-start;gap:14px;margin-bottom:12px}
+.game-title-wrap{min-width:0}
+.game-title-wrap h2{margin:0}
+.progress-row{gap:12px;margin-bottom:12px}
+.progress-track{height:9px;background:#e4e3de;border-radius:999px;overflow:hidden;flex:1}
+.progress-bar{height:100%;width:0;background:var(--accent);transition:width .25s}
+#stepCounter{font-size:.85rem;color:var(--muted);font-weight:700}
+.lesson-card{min-height:420px}
+.stage-label{font-size:.8rem;color:var(--muted);font-weight:900;letter-spacing:.05em}
+.read-box{margin-top:14px;background:var(--panel);border-radius:16px;padding:17px;line-height:2;font-size:1.06rem}
+.focus-box{margin-top:14px;border:1px solid var(--border);border-radius:14px;padding:13px;line-height:1.7}
+.feedback{margin-top:16px;background:var(--panel);border-radius:14px;padding:14px;line-height:1.7}
+.feedback.correct{background:var(--accent-soft)}
+.feedback.wrong{background:var(--warn-soft)}
+#nextBtn{margin-top:16px}
+.option-grid{display:grid;gap:10px;margin-top:16px}
+.option{border:1px solid var(--border);background:var(--card);border-radius:14px;min-height:50px;padding:12px 14px;text-align:left}
+.option:hover{border-color:#aaa99f}
+.option.correct{background:var(--accent-soft);border-color:var(--accent)}
+.option.wrong{opacity:.45}
+.evidence-box{margin-top:16px;background:var(--panel);border-radius:16px;padding:16px;line-height:2.2}
+.evidence-token{border:0;background:transparent;border-radius:8px;padding:3px 5px;margin:1px}
+.evidence-token.hit{background:var(--accent-soft);font-weight:900;text-decoration:underline}
+.evidence-token.miss{opacity:.3}
+.map-card{margin-top:14px;background:var(--panel);border-radius:16px;padding:10px;overflow:hidden}
+.map-card svg{width:100%;height:auto;display:block}
+.match-list{display:grid;gap:12px;margin-top:16px}
+.match-row{border:1px solid var(--border);border-radius:14px;padding:12px}
+.match-main{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,1.6fr);gap:10px;align-items:center}
+.match-row.bad{outline:3px solid var(--warn);outline-offset:2px;background:var(--warn-soft)}
+.match-mark{display:none;margin-top:8px;font-size:.86rem;font-weight:900;color:var(--warn)}
+.match-row.bad .match-mark{display:block}
+select{width:100%;min-height:46px;border:1px solid var(--border);border-radius:12px;background:white;padding:8px 10px}
+.diagram-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.diagram{background:var(--panel);border-radius:15px;padding:12px}
+.diagram svg{width:100%;height:auto}
+.note-sheet{margin:18px 0;background:#fffef9;border:1px solid #e7e2d5;border-radius:14px;padding:18px;line-height:1.9}
+.note-section{margin-bottom:14px}
+.note-section:last-child{margin-bottom:0}
+.note-section b{display:block;margin-bottom:3px}
+.boss-head{gap:12px;margin-bottom:16px}
+.boss-icon{font-size:2.4rem}
+.result{text-align:center;padding:10px 0 4px}
+.result .score{font-size:2rem;font-weight:900;margin:12px 0}
+.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.info-chip{border-radius:12px;background:var(--panel);padding:12px}
+.calc-box{margin-top:14px;background:var(--panel);border-radius:14px;padding:14px;line-height:1.9}
+@media(max-width:650px){
+  .chapter-grid,.diagram-grid{grid-template-columns:1fr}
+  .app-shell{padding:14px 12px 38px}
+  .card{padding:16px}
+  .match-main{grid-template-columns:1fr}
+  .site-header{align-items:flex-start}
+}
+
+
+/* 地図問題：地図を画面内に残したまま解く */
+.sticky-map-wrap{position:sticky;top:6px;z-index:5;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:9px;box-shadow:0 5px 20px rgba(0,0,0,.08);margin:12px 0}
+.sticky-map-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}
+.map-tools{display:flex;gap:6px}
+.map-tools button{min-width:38px;min-height:36px;border:1px solid var(--border);border-radius:10px;background:white;font-weight:900}
+.map-viewport{height:min(37vh,330px);overflow:auto;border-radius:12px;background:#eef3f0;-webkit-overflow-scrolling:touch}
+.map-viewport svg{display:block;width:100%;height:auto;min-height:100%;transition:width .15s}
+.map-question-panel{margin-top:12px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.map-question-panel .qcount{font-size:.78rem;font-weight:900;color:var(--muted);margin-bottom:6px}
+.map-question-panel .qtext{font-size:1.04rem;font-weight:900;line-height:1.65;margin:0}
+.map-hint{margin-top:8px;color:var(--muted);line-height:1.6;font-size:.9rem}
+.map-point{cursor:pointer}
+.map-point circle{fill:#fff;stroke:#2f6f55;stroke-width:2.5}
+.map-point text{font-size:12px;font-weight:900;fill:#2f6f55;pointer-events:none}
+.map-point.selected circle{fill:#2f6f55}
+.map-point.selected text{fill:#fff}
+.map-point.wrong circle{fill:#fff0f0;stroke:#b33a3a}
+.map-point.wrong text{fill:#b33a3a}
+.map-point.correct circle{fill:#e7f1ec;stroke:#2f6f55;stroke-width:4}
+.map-point.correct text{fill:#2f6f55}
+.map-answer-name{font-size:12px;font-weight:900;fill:#242424}
+.sequence-box{display:grid;gap:9px;margin-top:14px}
+.sequence-row{display:flex;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+.sequence-num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:900;flex:0 0 auto}
+@media(max-width:650px){.sticky-map-wrap{top:3px}.map-viewport{height:34vh}.sticky-map-head{align-items:flex-start}.map-point text{font-size:11px}}
+
+.table-scroll{overflow-x:auto;margin-top:14px}.study-table{width:100%;border-collapse:separate;border-spacing:0;min-width:620px}.study-table th,.study-table td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px;vertical-align:top}.study-table th:first-child,.study-table td:first-child{border-left:1px solid var(--border)}.study-table thead th{border-top:1px solid var(--border);background:var(--panel);text-align:left}.study-table thead th:first-child{border-top-left-radius:12px}.study-table thead th:last-child{border-top-right-radius:12px}.bad-row td{background:var(--warn-soft)}.row-mark{display:none;margin-top:6px;color:var(--warn);font-size:.8rem;font-weight:900}.bad-row .row-mark{display:block}
+
+/* v9 chapter 6 climate graphs */
+.climate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.climate-card{border:1px solid var(--line);border-radius:16px;padding:10px;background:#fff;min-width:0;cursor:pointer;transition:.15s}.climate-card:focus{outline:3px solid var(--accent);outline-offset:2px}.climate-card.picked-correct{outline:3px solid #2f6f55;background:#eef7f2}.climate-card.picked-wrong{outline:3px solid #b85d58;background:#fff2f1}.climate-card-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:1.05rem}.climate-city{color:var(--muted);font-size:.9rem}.climate-card svg{width:100%;height:auto;display:block}.climate-bar{fill:#c8d9e0}.climate-line{stroke:#555;vector-effect:non-scaling-stroke}.climate-axis{stroke:#aaa;stroke-width:1}.climate-stats{font-size:.78rem;color:var(--muted);line-height:1.45}@media(max-width:520px){.climate-grid{grid-template-columns:1fr}.climate-card{padding:8px}}
+
+.source-image-wrap{margin:14px 0;padding:10px;background:#fff;border:1px solid #ddd8cf;border-radius:18px;overflow:auto}
+.source-image-wrap img{display:block;width:100%;max-width:700px;height:auto;margin:auto}
